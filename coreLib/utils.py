@@ -20,15 +20,10 @@ def create_dir(base_dir,ext_name):
         os.mkdir(new_dir)
     return new_dir
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-count = 0
-TAG_CHARS= '#!$%&()*+,-./:;<=>?@[]^_`{|}~"0123456789' 
+TAG_CHARS= '#!$%&()*+,-./:;<=>?@[]^_`{|}~"'+ "0123456789'\\" 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-def incr():
-    global count
-    count += 1
 def dictify(sentences_a,sentences_b):
     for (sentence_a, sentence_b) in zip(sentences_a, sentences_b):
-        incr()
         s_a=sentence_a.rstrip()        
         s_b=sentence_b.rstrip()
         for tag in TAG_CHARS:
@@ -36,36 +31,42 @@ def dictify(sentences_a,sentences_b):
             s_b=str(s_b).replace(tag,'')
         yield s_a,s_b
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-
+def get_filter_data(filter_file):
+    words=[]
+    with open(filter_file,'r') as fd:
+        for sentence in fd:
+            s=sentence.rstrip()
+            for tag in TAG_CHARS:
+                s=str(s).replace(tag,'')            
+            for word in s.split():
+                words.append(word)
+    return words
+#--------------------------------------------------------------------------------------------------------------------------------------------------
 def europarl_jsonify(FLAGS,STATS):
-    '''
-        Format the raw data to json with explicit formatting
-    '''
-    _PBAR=ProgressBar()
-    global count
-    LOG_INFO('Starting to jsonify: {} and {}'.format(STATS.INFILE_A,STATS.INFILE_B))
-    # count the number of files needed to store the data
-    FILE_COUNT=math.ceil(STATS.SENTENCE_COUNT/STATS.MAX_LENGTH)
-    LOG_INFO('Total Number of json files:{}'.format(FILE_COUNT),p_color='yellow')
-    
+    words=get_filter_data(STATS.FILTER_A)
+    LOG_INFO('Starting to jsonify')
+    sen=0
     with open(STATS.INFILE_A, 'r') as a, open(STATS.INFILE_B, 'r') as b:
-        LOG_INFO('Writing Data to JSON ')
-        for fn_id in _PBAR(range(FILE_COUNT)):
-            # data to write
-            SEN_NUM = STATS.SENTENCE_COUNT - (fn_id*STATS.MAX_LENGTH)  
-            DATA_COUNT=min(SEN_NUM,STATS.MAX_LENGTH)
-            # json
-            JSON_FILE=os.path.join(STATS.DATA_JSON_DIR,'{}.json'.format(fn_id))
-            # write mode
-            with open(JSON_FILE,'w') as outfile:
-                # json_begin
-                outfile.write('[')
-                outfile.write('\n')
-                
-                while True:
-                    try:
-                        # get sentences
-                        s_a,s_b = next(dictify(a,b))
+        JSON_FILE=os.path.join(FLAGS.MODEL_DIR,'corpus.json')
+        # write mode
+        with open(JSON_FILE,'w') as outfile:
+            # json_begin
+            outfile.write('[')
+            outfile.write('\n')     
+            
+            while True:
+                try:
+                    # get sentences
+                    s_a,s_b = next(dictify(a,b))
+                    write_flag=False
+                    # filter sentence
+                    for word in words:
+                        if word in s_a:
+                            write_flag=True
+                            words.remove(word)
+                    if write_flag:
+                        sen+=1
+                        LOG_INFO('SENTENCE:{}'.format(sen))
                         # json formatting
                         outfile.write('\t{')
                         outfile.write('\n')
@@ -79,7 +80,7 @@ def europarl_jsonify(FLAGS,STATS):
                         outfile.write('\t\t{}'.format(line_b))
                         outfile.write('\n') 
                         # formatting for last sentence
-                        if count == DATA_COUNT:
+                        if len(words)==0:
                             outfile.write('\t}')
                             outfile.write('\n')
                             break
@@ -87,11 +88,10 @@ def europarl_jsonify(FLAGS,STATS):
                             outfile.write('\t},')
                             outfile.write('\n')
                     
-                    except StopIteration:
-                        break
-                # json_end
-                outfile.write(']')
-            # reset counter
-            count = 0
-            
+                except StopIteration:
+                    break
+            # json_end
+            outfile.write(']')
+            print(words)
+        
 #--------------------------------------------------------------------------------------------------------------------------------------------------

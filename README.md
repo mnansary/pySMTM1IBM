@@ -1,12 +1,10 @@
 # IBM STM Model 1
 
-    Version: 0.0.1 
+    Version: 0.0.2 
     Author : Md. Nazmuddoha Ansary    
                   
-![](/info/python.ico?raw=true )
 
-
-
+['Turisten', 'Eislaufen', 'Wakeboarding', 'shoppen']
 ### Version and Requirements
 * Create a Virtualenv and ***pip3 install -r requirements.txt***
 
@@ -22,15 +20,15 @@
           {
             "FLAGS":
             {
-                "LANG_A"         : "de",
-                "LANG_B"         : "en",
+                "LANG_A"         : "en",
+                "LANG_B"         : "de",
                 "MODEL_DIR"      : "/home/ansary/WORK/MT/IBM-Model-1/MODEL_DIR/",
                 "TEST_JSON"      : "/home/ansary/WORK/MT/IBM-Model-1/MODEL_DIR/test.json"
             },
             "STATS":
             {
-                "INFILE_A"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.de",
-                "INFILE_B"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.en",
+                "INFILE_A"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.en",
+                "INFILE_B"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.de",
                 "DATA_JSON_DIR"  : "/home/ansary/WORK/MT/Data/",
                 "SENTENCE_COUNT" : 1920209,
                 "MAX_LENGTH"     : 10000
@@ -73,13 +71,6 @@
             -----------------
             -----------------
             -----------------
-
-**Results:Check**
-* run **./main.py check**
-* manually correct the ***{some number}.json*** with **Invalid control character at:** error
-> remove space from start of the two error sentences
-![](/info/cor.png?raw=true )
-
 
 **Results:Train**
 * run **./main.py train**

@@ -21,18 +21,9 @@ EPSILON=0.001
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def init_translation_probabilities(words,FLAGS):
-    '''
-    Given words generate the first set of translation probabilities,
-    which can be accessed as
-    p(e|s) <=> translation_probabilities[e][s]
-    we first assume that for an `e` and set of `s`s, it is equally likely
-    that e will translate to any s in `s`s
-    '''
     LOG_INFO('Initializing Probabilities')
     p_val=1/len(words[FLAGS.LANG_B])
-    return {word_b: {word_a: p_val for word_a in words[FLAGS.LANG_A]}
-                for word_b in words[FLAGS.LANG_B]}
-
+    return {word_a: {word_b: p_val for word_b in words[FLAGS.LANG_B]}for word_a in words[FLAGS.LANG_A]}
 
 def get_words(corpus,FLAGS):
     def source_words(lang):
@@ -43,34 +34,26 @@ def get_words(corpus,FLAGS):
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def train_iteration(corpus, words, total_s, prev_translation_probabilities,FLAGS):
+    _PBAR=ProgressBar()
+    counts = {word_a: {word_b: 0 for word_b in words[FLAGS.LANG_B]}for word_a in words[FLAGS.LANG_A]}
+    totals = {word_b: 0 for word_b in words[FLAGS.LANG_B]}
     LOG_INFO('Getting Previous Translation Probabilities')
     translation_probabilities = deepcopy(prev_translation_probabilities)
-    
-    _PBAR=ProgressBar()
-    
-    counts = {word_en: {word_fr: 0 for word_fr in words[FLAGS.LANG_A]}
-              for word_en in words[FLAGS.LANG_B]}
-    
-    totals = {word_fr: 0 for word_fr in words[FLAGS.LANG_A]}
     LOG_INFO('Setting Counts And Totals')
-    for (es, fs) in [(pair[FLAGS.LANG_B].split(), pair[FLAGS.LANG_A].split())for pair in corpus]:
-        
-        for e in es:
-            total_s[e] = 0
-
-            for f in fs:
-                total_s[e] += translation_probabilities[e][f]
-
-        for e in es:
-            for f in fs:
-                counts[e][f] += (translation_probabilities[e][f] /
-                                 total_s[e])
-                totals[f] += translation_probabilities[e][f] / total_s[e]
+    for (a_s, b_s) in [(pair[FLAGS.LANG_A].split(), pair[FLAGS.LANG_B].split())for pair in corpus]:
+        for a in a_s:
+            total_s[a] = 0
+            for b in b_s:
+                total_s[a] += translation_probabilities[a][b]
+        for a in a_s:
+            for b in b_s:
+                counts[a][b] += (translation_probabilities[a][b] / total_s[a])
+                totals[b] += translation_probabilities[a][b] / total_s[a]
 
     LOG_INFO('Setting Translation Probabilities')
-    for f in _PBAR(words[FLAGS.LANG_A]):
-        for e in words[FLAGS.LANG_B]:
-            translation_probabilities[e][f] = counts[e][f] / totals[f]
+    for b in _PBAR(words[FLAGS.LANG_B]):
+        for a in words[FLAGS.LANG_A]:
+            translation_probabilities[a][b] = counts[a][b] / totals[b]
             
     return translation_probabilities
 
@@ -95,33 +78,33 @@ def table_distance(table_1, table_2):
     return result ** 0.5
 
 def is_converged(probabilties_prev, probabilties_curr, EPSILON):
-    '''
-    Decide when the model whose final two iterations are
-    `probabilties_prev` and `probabilties_curr` has converged
-    '''
     delta = table_distance(probabilties_prev, probabilties_curr)
     return delta < EPSILON
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 
-def summarize_results(translation_probabilities):
-    '''
-    from a dict of source: {target: p(source|target}, return
-    a list of mappings from source words to the most probable target word
-    '''
-    return {
-        # for each english word
-        # sort the words it could translate to; most probable first
-        k: sorted(v.items(), key=itemgetter(1), reverse=True)
-        # then grab the head of that == `(most_probable, p(k|most probable)`
-        [0]
-        # and the first of that pair (the actual word!)
-        [0]
-        for (k, v) in translation_probabilities.items()
-    }
-
+def summarize_results(probabs,words,FLAGS):
+    taken_word = {word_b: True for word_b in words[FLAGS.LANG_B]}
+    res={}
+    for a in words[FLAGS.LANG_A]:
+        taken=False
+        idx=0
+        prob_b=sorted(probabs[a].items(), key=itemgetter(1), reverse=True)
+        while not taken:
+            if idx >= len(prob_b):
+                idx=0
+                break
+            word_b=prob_b[idx][0]
+            if taken_word[word_b]:
+                taken_word[word_b]=False
+                res.update({a:word_b})
+                taken=True
+                idx=0
+            else:
+                idx+=1
+    return res
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def train_model(corpus,words,FLAGS):
-    total_s = {word_en: 0 for word_en in words['{}'.format(FLAGS.LANG_B)]} 
+    total_s = {word_a: 0 for word_a in words[FLAGS.LANG_A]} 
     prev_translation_probabilities = init_translation_probabilities(words,FLAGS)
     converged = False
     iterations = 0
@@ -132,17 +115,10 @@ def train_model(corpus,words,FLAGS):
         converged = is_converged(prev_translation_probabilities,translation_probabilities, EPSILON)
         prev_translation_probabilities = translation_probabilities
         iterations += 1
-    return translation_probabilities, iterations
+    return translation_probabilities
 
-def train(FLAGS,STATS,NUM):
-    # data_dir
-    data_dir=os.path.join(STATS.DATA_JSON_DIR,'{}.json'.format(NUM))
+def train(FLAGS,STATS):
     corpus_dir=os.path.join(FLAGS.MODEL_DIR,'corpus.json')
-    # copy
-    shutil.copy(data_dir,corpus_dir)
-    
-    LOG_INFO('Reading Data:{}-NO:{}'.format(corpus_dir,NUM))
-    # Corpus
     corpus = readJson(corpus_dir)
     # Words
     words=get_words(corpus,FLAGS)
@@ -152,11 +128,11 @@ def train(FLAGS,STATS,NUM):
     LOG_INFO('LANG-A-WORD-COUNT:{}'.format(lang_a_word_count))
     LOG_INFO('LANG-B-WORD-COUNT:{}'.format(lang_b_word_count))    
     # get probabilities
-    probabilities, iterations = train_model(corpus,words,FLAGS) 
-    # results
-    result_table = summarize_results(probabilities)
+    probabilities = train_model(corpus,words,FLAGS) 
     # save model
-    MODEL_JSON=os.path.join(FLAGS.MODEL_DIR,'model_itr_{}_num_{}.json'.format(iterations,NUM))
-    LOG_INFO('Saving Model:{}'.format(MODEL_JSON))
+    results=summarize_results(probabilities,words,FLAGS)
+    MODEL_JSON=os.path.join(FLAGS.MODEL_DIR,'model.json')
     with open(MODEL_JSON,'w') as model_file:
-        json.dump(result_table,model_file,indent=2,ensure_ascii=False)
+        json.dump(results,model_file,indent=2,ensure_ascii=False)
+    
+    
