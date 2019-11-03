@@ -19,6 +19,9 @@ def create_dir(base_dir,ext_name):
     if not os.path.exists(new_dir):
         os.mkdir(new_dir)
     return new_dir
+def dump_data(file_path,data):
+    with open(file_path,'w') as fd:
+        json.dump(data,fd,indent=2,ensure_ascii=False)
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 TAG_CHARS= '#!$%&()*+,-./:;<=>?@[]^_`{|}~"'+ "0123456789'\\" 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -45,53 +48,26 @@ def get_filter_data(filter_file):
 def europarl_jsonify(FLAGS,STATS):
     words=get_filter_data(STATS.FILTER_A)
     LOG_INFO('Starting to jsonify')
+    JSON_FILE=os.path.join(FLAGS.MODEL_DIR,'corpus.json')    
     sen=0
+    data=[]
     with open(STATS.INFILE_A, 'r') as a, open(STATS.INFILE_B, 'r') as b:
-        JSON_FILE=os.path.join(FLAGS.MODEL_DIR,'corpus.json')
-        # write mode
-        with open(JSON_FILE,'w') as outfile:
-            # json_begin
-            outfile.write('[')
-            outfile.write('\n')     
-            
-            while True:
-                try:
-                    # get sentences
-                    s_a,s_b = next(dictify(a,b))
-                    write_flag=False
-                    # filter sentence
-                    for word in words:
-                        if word in s_a:
-                            write_flag=True
-                            words.remove(word)
-                    if write_flag:
-                        sen+=1
-                        LOG_INFO('SENTENCE:{}'.format(sen))
-                        # json formatting
-                        outfile.write('\t{')
-                        outfile.write('\n')
-                        # sentences 
-                        line_a='"{}":"{}",'.format(FLAGS.LANG_A,s_a)
-                        line_b='"{}":"{}"' .format(FLAGS.LANG_B,s_b)
-                        # lang-a
-                        outfile.write('\t\t{}'.format(line_a))
-                        outfile.write('\n') 
-                        # lang-b
-                        outfile.write('\t\t{}'.format(line_b))
-                        outfile.write('\n') 
-                        # formatting for last sentence
-                        if len(words)==0:
-                            outfile.write('\t}')
-                            outfile.write('\n')
-                            break
-                        else: 
-                            outfile.write('\t},')
-                            outfile.write('\n')
-                    
-                except StopIteration:
-                    break
-            # json_end
-            outfile.write(']')
-            print(words)
-        
+        while True:
+            try:
+                # get sentences
+                s_a,s_b = next(dictify(a,b))
+                write_flag=False
+                # filter sentence
+                for word in words:
+                    if word in s_a:
+                        write_flag=True
+                        words.remove(word)
+                if write_flag:
+                    sen+=1
+                    LOG_INFO('SENTENCE:{}'.format(sen))
+                    sen_dict={FLAGS.LANG_A:s_a,FLAGS.LANG_B:s_b}
+                    data.append(sen_dict)
+            except StopIteration:
+                break
+    dump_data(JSON_FILE,data)
 #--------------------------------------------------------------------------------------------------------------------------------------------------
