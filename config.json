@@ -1,0 +1,17 @@
+{
+    "FLAGS":
+    {
+        "LANG_A"         : "de",
+        "LANG_B"         : "en",
+        "MODEL_DIR"      : "/home/ansary/WORK/MT/pySMTM1IBM/MODEL_DIR/",
+        "TEST_JSON"      : "/home/ansary/WORK/MT/pySMTM1IBM/MODEL_DIR/test.json"
+    },
+    "STATS":
+    {
+        "INFILE_A"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.de",
+        "INFILE_B"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.en",
+        "DATA_JSON_DIR"  : "/home/ansary/WORK/MT/Data/",
+        "SENTENCE_COUNT" : 1920209,
+        "MAX_LENGTH"     : 500
+    }
+}
