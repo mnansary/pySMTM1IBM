@@ -12,8 +12,11 @@ from progressbar import ProgressBar
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def readJson(file_name):
     return json.load(open(file_name))
-def LOG_INFO(log_text,p_color='green'):
-    print(colored('#    LOG:','blue')+colored(log_text,p_color))
+def LOG_INFO(log_text,p_color='green',rep=True):
+    if rep:
+        print(colored('#    LOG:','blue')+colored(log_text,p_color))
+    else:
+        print(colored('#    LOG:','blue')+colored(log_text,p_color),end='\r')
 def create_dir(base_dir,ext_name):
     new_dir=os.path.join(base_dir,ext_name)
     if not os.path.exists(new_dir):
@@ -47,27 +50,32 @@ def get_filter_data(filter_file):
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def europarl_jsonify(FLAGS,STATS):
     words=get_filter_data(STATS.FILTER_A)
+    words=words*STATS.FILTER_SIZE
     LOG_INFO('Starting to jsonify')
     JSON_FILE=os.path.join(FLAGS.MODEL_DIR,'corpus.json')    
-    sen=0
     data=[]
+    sen=0
+    sen_as=[]
+    sen_bs=[]
     with open(STATS.INFILE_A, 'r') as a, open(STATS.INFILE_B, 'r') as b:
         while True:
             try:
                 # get sentences
                 s_a,s_b = next(dictify(a,b))
-                write_flag=False
                 # filter sentence
-                for word in words:
+                for word in words:   
                     if word in s_a:
-                        write_flag=True
-                        words.remove(word)
-                if write_flag:
-                    sen+=1
-                    LOG_INFO('SENTENCE:{}'.format(sen))
-                    sen_dict={FLAGS.LANG_A:s_a,FLAGS.LANG_B:s_b}
-                    data.append(sen_dict)
+                        if s_a not in sen_as:
+                            sen+=1
+                            sen_as.append(s_a)
+                            sen_bs.append(s_b)           
+                            words.remove(word)
+                            LOG_INFO('Sentence Count:{}'.format(sen),rep=False)  
             except StopIteration:
                 break
+    for (s_a,s_b) in zip(sen_as,sen_bs):
+        sen_dict={FLAGS.LANG_A:s_a,FLAGS.LANG_B:s_b}
+        data.append(sen_dict)
+    
     dump_data(JSON_FILE,data)
 #--------------------------------------------------------------------------------------------------------------------------------------------------
