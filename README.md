@@ -1,7 +1,8 @@
 # IBM STM Model 1
 
     Version: 0.0.2 
-    Author : Md. Nazmuddoha Ansary    
+    Authors: Md. Nazmuddoha Ansary,Shakir Hossain
+            
                   
 
 ### Version and Requirements
