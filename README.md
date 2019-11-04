@@ -4,7 +4,6 @@
     Author : Md. Nazmuddoha Ansary    
                   
 
-['Turisten', 'Eislaufen', 'Wakeboarding', 'shoppen']
 ### Version and Requirements
 * Create a Virtualenv and ***pip3 install -r requirements.txt***
 
@@ -17,28 +16,27 @@
 > *(visit [this link](https://www.statmt.org/europarl/) for sentence count)*
 * Example: ***config.json***    
             
-          {
+        {
             "FLAGS":
             {
-                "LANG_A"         : "en",
-                "LANG_B"         : "de",
-                "MODEL_DIR"      : "/home/ansary/WORK/MT/IBM-Model-1/MODEL_DIR/",
-                "TEST_JSON"      : "/home/ansary/WORK/MT/IBM-Model-1/MODEL_DIR/test.json"
+                "LANG_A"         : "de",
+                "LANG_B"         : "en",
+                "MODEL_DIR"      : "/home/ansary/WORK/MT/MODEL_DIR/"
             },
             "STATS":
             {
-                "INFILE_A"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.en",
-                "INFILE_B"       : "/home/ansary/WORK/MT/de-en/europarl-v7.de-en.de",
-                "DATA_JSON_DIR"  : "/home/ansary/WORK/MT/Data/",
-                "SENTENCE_COUNT" : 1920209,
-                "MAX_LENGTH"     : 10000
+                "INFILE_A"       : "/home/ansary/WORK/MT/Data/europarl-v7.de-en.de",
+                "INFILE_B"       : "/home/ansary/WORK/MT/Data/europarl-v7.de-en.en",
+                "FILTER_A"       : "/home/ansary/WORK/MT/Data/test.de",
+                "FILTER_SIZE"    : 2
             }
         }
 
 
 
 
-* run **main.py**
+
+* Preprocessing and Training: **main.py**
 
                 usage: main.py [-h] exec_flag
 
@@ -47,39 +45,27 @@
                 positional arguments:
                 exec_flag   
                                                         Execution Flag for running 
-                                                        Available Flags: prep,train,eval
+                                                        Available Flags: prep,train
                                                         1)prep      = create test and train json data
                                                         2)train     = train the model 
-                                                        3)eval      = evaluates new data
                                                         
 
                 optional arguments:
                 -h, --help  show this help message and exit
 
+* Evaluation: **evaluate.py** 
 
+                usage: evaluate.py [-h] test_a test_b model_dir
 
+                IBM MODEL 1 Implementation For Europarl(Tested on German-English)
 
-**Results:Preprocessing**
-* run **./main.py prep**
-* The **STATS{DATA_JSON_DIR}** should have the following folder tree:
+                positional arguments:
+                test_a      language a test file
+                test_b      language b test file
+                model_dir   model.json location
 
-            Data
-            ├── 0.json
-            ├── 1.json
-            ├── 2.json
-            ├── 3.json
-            -----------------
-            -----------------
-            -----------------
-
-**Results:Train**
-* run **./main.py train**
-* The **FLAGS{MODEL_DIR}** should have the following folder tree:
-
-                MODEL_DIR
-                ├── corpus.json
-                └── model_itr_{itr-number}_num_{train_file_number}.json
-
+                optional arguments:
+                -h, --help  show this help message and exit
 
 **ENVIRONMENT**  
 
