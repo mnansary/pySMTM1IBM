@@ -1,6 +1,6 @@
 # IBM STM Model 1
 
-    Version: 0.0.2 
+    Version: 0.1.0 
     Author : Md. Nazmuddoha Ansary    
                   
 
@@ -28,7 +28,7 @@
                 "INFILE_A"       : "/home/ansary/WORK/MT/Data/europarl-v7.de-en.de",
                 "INFILE_B"       : "/home/ansary/WORK/MT/Data/europarl-v7.de-en.en",
                 "FILTER_A"       : "/home/ansary/WORK/MT/Data/test.de",
-                "FILTER_SIZE"    : 2
+                "FILTER_SIZE"    : 5
             }
         }
 
@@ -66,6 +66,21 @@
 
                 optional arguments:
                 -h, --help  show this help message and exit
+
+
+The **evalute.py** script calculates:
+1. Precision 
+2. Recall 
+3. BLEU score of 1-4 gram models
+4. Levenshtein distance parameters 
+    *    No. of Matches 
+    *    No. of Insertion
+    *    No. of Deletion
+    *    No. of Substitution
+
+**Example Results:**
+
+![](/MODEL_DIR/RESULTS.png?raw=true)
 
 **ENVIRONMENT**  
 

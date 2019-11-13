@@ -10,6 +10,6 @@
         "INFILE_A"       : "/home/ansary/WORK/MT/Data/europarl-v7.de-en.de",
         "INFILE_B"       : "/home/ansary/WORK/MT/Data/europarl-v7.de-en.en",
         "FILTER_A"       : "/home/ansary/WORK/MT/Data/test.de",
-        "FILTER_SIZE"    : 2
+        "FILTER_SIZE"    : 5
     }
 }

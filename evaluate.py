@@ -21,52 +21,117 @@ test_a=args.test_a
 test_b=args.test_b
 model_dir=args.model_dir
 
+base_model_dir,_=os.path.split(model_dir)
+result_json=os.path.join(base_model_dir,'translation.json')
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-def recall_precision(test_a,test_b,model_dir):
-    base_dir=os.path.dirname(model_dir)
-    result_json =os.path.join(base_dir,'recall.json') 
-    # model
-    model=readJson(model_dir)
-    data=[]
-    words_sen=[]
-    with open(test_a, 'r') as a, open(test_b, 'r') as b:
-        while True:
-            try:
-                sen,_ = next(dictify(a,b))
-                words_sen+=sen.split()                        
-            except StopIteration:
-                break
-    count=0
-    for word in words_sen:
-        if word in model:
-            pred=model[word]
+def eval_precision_recall(result_json):
+    results=readJson(result_json)
+    correct_count=0
+    reference_count=0
+    length_count=0
+    for data in results:
+        length_count+=len(data['sentence'].split())
+        reference_count+=len(data['reference'].split())
+        pred_words=data['output'].split()
+        ref_sentence=data['reference']
+        for pred_word in pred_words:
+            if pred_word in ref_sentence:
+                correct_count+=1
+                #ref_sentence=ref_sentence.replace(pred_word,'')
+                
+    LOG_INFO('RECALL:{} %'.format(100*(correct_count/reference_count)))
+    LOG_INFO('PRECISION:{} %'.format(100*(correct_count/length_count)))
+    return length_count/reference_count
+#--------------------------------------------------------------------------------------------------------------------------------------------------    
+def eval_BELU(result_json,BELU_GRAM=4):
+    results=readJson(result_json)
+    precisions=[]
+    for gram in range(1,BELU_GRAM+1):
+        correct_count=0
+        length_count=0
+        for data in results:
+            gram_length=len(data['output'].split())+1-gram
+            length_count+=gram_length
+            for i in range(gram_length):
+                phrase=' '.join(data['output'].split()[i:i+gram]) 
+                if phrase in data['reference']:
+                    correct_count+=1
+        
+        gram_precision=correct_count/length_count
+        precisions.append(gram_precision)
+    
+    for idx in range(len(precisions)):
+        LOG_INFO("BELU-{}-GRAM-Precision:{} %".format(idx+1,100*precisions[idx]))
+#--------------------------------------------------------------------------------------------------------------------------------------------------    
+def calc_Levenshtein_distance(result_json):
+    LOG_INFO('Levenshtein distance Parameters:')
+    results=readJson(result_json)
+    total_del=0
+    total_ins=0
+    total_sub=0
+    total_mat=0
+    for data in results:
+        nb_del=0
+        nb_ins=0
+        nb_mat=0
+        nb_sub=0
+        len_ref=len(data['reference'].split())
+        len_out=len(data['output'].split())
+        # del and ins
+        if len_ref>len_out:
+            nb_ins=len_ref-len_out
+        elif len_out>len_ref:
+            nb_del=len_out-len_ref
         else:
-            pred="NOT FOUND"
-            count+=1
-        data_dict={"org":word,"mdl":pred}
-        data.append(data_dict)
-    recall_val=(1-(count/len(words_sen)))*100
-    dump_data(result_json,data)
-    LOG_INFO('RECALL:{}'.format(recall_val))
+            nb_ins=0
+            nb_del=0
+        # matches and subs
+        pred_words=data['output'].split()
+        ref_sentence=data['reference']
+        for pred_word in pred_words:
+            if pred_word in ref_sentence:
+                nb_mat+=1
+        nb_sub=len_out-nb_mat
+        #LOG_INFO('{}'.format(ref_sentence),p_color='yellow')
+        #LOG_INFO('{}'.format(data['output']),p_color='red')
+        #LOG_INFO('Number of Matches:{}'.format(nb_mat))
+        #LOG_INFO('Number of Substitution:{}'.format(nb_sub))
+        #LOG_INFO('Number of Insertion:{}'.format(nb_ins))
+        #LOG_INFO('Number of Deletion:{}'.format(nb_del))
+        total_del+=nb_del
+        total_ins+=nb_ins
+        total_sub+=nb_sub
+        total_mat+=nb_mat
+    LOG_INFO('Total Number of Matches:{}'.format(total_mat))
+    LOG_INFO('Total Number of Substitution:{}'.format(total_sub))
+    LOG_INFO('Total Number of Insertion:{}'.format(total_ins))
+    LOG_INFO('Total Number of Deletion:{}'.format(total_del))
 
+#--------------------------------------------------------------------------------------------------------------------------------------------------    
 def translation(test_a,test_b,model_dir):
     # model
     model=readJson(model_dir)
+    Data=[]
     with open(test_a, 'r') as a, open(test_b, 'r') as b:
         while True:
             try:
                 sen,gt = next(dictify(a,b))
-                LOG_INFO('sen:{}'.format(sen),p_color='green')
-                LOG_INFO('gt:{}'.format(gt),p_color='red')
                 pred=sen
                 for word in sen.split():
                     if word in model:
                         pred=pred.replace(word,model[word])
-                LOG_INFO('pred:{}'.format(pred),p_color='yellow')
-                
+                pred_dict={"sentence":' '.join(sen.split()),
+                            "output":' '.join(pred.split()),
+                            "reference":' '.join(gt.split())}
+                Data.append(pred_dict)     
             except StopIteration:
                 break
+    dump_data(result_json,Data)
 
 if __name__ == "__main__":
-    recall_precision(test_a,test_b,model_dir)
     translation(test_a,test_b,model_dir)
+    BELU_penalty=eval_precision_recall(result_json)
+    BELU_penalty=min(1,BELU_penalty)
+    LOG_INFO("BELU-Penalty:{}".format(BELU_penalty))
+    eval_BELU(result_json)
+    calc_Levenshtein_distance(result_json)

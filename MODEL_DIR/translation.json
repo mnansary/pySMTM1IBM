@@ -1,0 +1,32 @@
+[
+  {
+    "sentence": "Die Stadt in der ich wohne ist ziemlich klein",
+    "output": "transitional Jordan in city I wohne is ziemlI klein",
+    "reference": "The town I live in is quite small"
+  },
+  {
+    "sentence": "Sie hat nur Einwohner und ist umgeben von Landwirtschaft und Wäldern",
+    "output": "you has only inhabitants and is everywhere opportunities Agriculture and forest",
+    "reference": "It only has inhabitants and is surrounded by farmland and forests"
+  },
+  {
+    "sentence": "Wir haben auch einen schönen See welcher im Sommer eine große Attraktion ist und viele Turisten machen hier dann Urlaub",
+    "output": "We quite also setting fine stop whatever continued summer an railways attraction is and many Turisen doing here then synonymous",
+    "reference": "We also have a nice lake which is a great attraction in summer when many tourists come for holidays"
+  },
+  {
+    "sentence": "Ich bin früher immer Eislaufen gewesen auf dem See als es im Winter noch kälter war",
+    "output": "I am Poverty least Eislwaterwaysen occurred waterways land stop than reduce continued winter still place whole",
+    "reference": "I used to ice skate on the lake in winter when I was younger and the winters were colder"
+  },
+  {
+    "sentence": "Man kann dort schwimmen segeln oder windsurfen und man kann sogar Wakeboarding lernen",
+    "output": "almost can vital swim image or monitored and fall can levels Wakeboarding learn",
+    "reference": "You can go swimming sailing or windsurfing there and you even can learn how to wakeboard"
+  },
+  {
+    "sentence": "Meine Stadt liegt nicht weit von einer großen Stadt so dass die Leute dort auch shoppen gehen können da die Zugfahrt nur Minuten dauert",
+    "output": "My Jorproposedn special not tanks opportunities down major Jorproposedn Given getting these people vital also shoppen summer might proposed these train only minutes proposeduert",
+    "reference": "My town is not far from a big city so people can go shopping there as well as it only takes minutes by train"
+  }
+]

@@ -93,6 +93,7 @@ class IBMM1(object):
             dict_mdl={a:b}
             res.update(dict_mdl)        
         dump_data(self.model_json,res)
+        os.remove(os.path.join(self.model_dir,'probabs_final.json'))
 
 
     def train(self):
