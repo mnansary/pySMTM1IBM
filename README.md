@@ -81,8 +81,18 @@ The **evalute.py** script calculates:
 
 **Example Results:**
 
-![](/MODEL_DIR/RESULTS.png?raw=true)
-
+* RECALL:31.958762886597935 %
+* PRECISION:33.33333333333333 %
+* BLEU-Penalty:0.9587628865979382
+* BLEU-1-GRAM-Precision:33.33333333333333 %
+* BLEU-2-GRAM-Precision:3.4482758620689653 %
+* BLEU-3-GRAM-Precision:1.2345679012345678 %
+* BLEU-4-GRAM-Precision:0.0 %
+* Levenshtein distance Parameters:
+* Total Number of Matches:31
+* Total Number of Substitution:62
+* Total Number of Insertion:6
+* Total Number of Deletion:2
 **ENVIRONMENT**  
 
     OS          : Ubuntu 18.04.3 LTS (64-bit) Bionic Beaver        

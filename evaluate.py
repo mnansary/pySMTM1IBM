@@ -43,10 +43,10 @@ def eval_precision_recall(result_json):
     LOG_INFO('PRECISION:{} %'.format(100*(correct_count/length_count)))
     return length_count/reference_count
 #--------------------------------------------------------------------------------------------------------------------------------------------------    
-def eval_BELU(result_json,BELU_GRAM=4):
+def eval_BLEU(result_json,BLEU_GRAM=4):
     results=readJson(result_json)
     precisions=[]
-    for gram in range(1,BELU_GRAM+1):
+    for gram in range(1,BLEU_GRAM+1):
         correct_count=0
         length_count=0
         for data in results:
@@ -61,7 +61,7 @@ def eval_BELU(result_json,BELU_GRAM=4):
         precisions.append(gram_precision)
     
     for idx in range(len(precisions)):
-        LOG_INFO("BELU-{}-GRAM-Precision:{} %".format(idx+1,100*precisions[idx]))
+        LOG_INFO("BLEU-{}-GRAM-Precision:{} %".format(idx+1,100*precisions[idx]))
 #--------------------------------------------------------------------------------------------------------------------------------------------------    
 def calc_Levenshtein_distance(result_json):
     LOG_INFO('Levenshtein distance Parameters:')
@@ -130,8 +130,8 @@ def translation(test_a,test_b,model_dir):
 
 if __name__ == "__main__":
     translation(test_a,test_b,model_dir)
-    BELU_penalty=eval_precision_recall(result_json)
-    BELU_penalty=min(1,BELU_penalty)
-    LOG_INFO("BELU-Penalty:{}".format(BELU_penalty))
-    eval_BELU(result_json)
+    BLEU_penalty=eval_precision_recall(result_json)
+    BLEU_penalty=min(1,BLEU_penalty)
+    LOG_INFO("BLEU-Penalty:{}".format(BLEU_penalty))
+    eval_BLEU(result_json)
     calc_Levenshtein_distance(result_json)
